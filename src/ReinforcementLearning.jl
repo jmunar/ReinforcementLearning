@@ -1,6 +1,6 @@
 module ReinforcementLearning
 
 include("Commons.jl")
-include("RaceTrack.jl")
+include("RaceTrack/RaceTrack.jl")
 
 end # module

@@ -1,8 +1,8 @@
 module RaceTrack
 
-include("RaceTrackCommons.jl")
-include("RaceTrackGame.jl")
-include("RaceTrackPlayer.jl")
+include("Commons.jl")
+include("Game.jl")
+include("Player.jl")
 
 function play_game_fixed_start(game::Game, player::Union{PlayerDeterministic, PlayerRandom}, state::State)::Int
 
