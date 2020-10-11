@@ -1,14 +1,16 @@
 module RaceTrack
 
-include("Commons.jl")
-include("Game.jl")
-include("Player.jl")
+using ..ReinforcementLearning: Point, t
+
+include("./Commons.jl")
+include("./Game.jl")
+include("./Player.jl")
 
 function play_game_fixed_start(game::Game, player::Union{PlayerDeterministic, PlayerRandom}, state::State)::Int
 
     game.episode_step[] = 0
 
-    while game.episode_step[] < GAME_MAX_NSTEPS
+    while true
         game.episode_step[] += 1
         game.episode_states[game.episode_step[]] = index(state)
 

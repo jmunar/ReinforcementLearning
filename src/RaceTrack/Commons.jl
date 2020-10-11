@@ -1,6 +1,4 @@
 
-using ...Commons: Point, t
-
 "Stores the state of a game"
 struct State
     nrows::Int
