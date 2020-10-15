@@ -17,7 +17,9 @@ function Base.show(io::IO, m::Game)
     print(io, "Game(", ncols(m), "x", nrows(m), ", s=", m.pos_start, ", g=", m.pos_goal, ")")
 end
 
-function state_update(game::Game, state::State, action::Action)::State
+state_start(game::Game) = State(nrows(game), ncols(game), game.pos_start)
+
+function state_update(game::Game, state::State, action::Action)::Tuple{State, Int}
     pos_x = max(1, min(state.pos.x + action.vector.x, state.ncols))
     pos_y = max(1, min(state.pos.y + action.vector.y, state.nrows))
 
@@ -25,7 +27,5 @@ function state_update(game::Game, state::State, action::Action)::State
     wind  = game.grid_wind[pos_x, pos_y]
     pos_x = max(1, min(pos_x + wind.x, ncols(game)))
     pos_y = max(1, min(pos_y + wind.y, nrows(game)))
-    State(nrows(game), ncols(game), Point(pos_x, pos_y))
+    (State(nrows(game), ncols(game), Point(pos_x, pos_y)), -1)
 end
-
-_AllActions = [Action(i) for i in 1:nactions()]
