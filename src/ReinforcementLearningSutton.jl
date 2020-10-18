@@ -1,4 +1,4 @@
-module ReinforcementLearning
+module ReinforcementLearningSutton
 
 include("./Commons.jl")
 

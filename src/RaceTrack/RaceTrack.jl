@@ -1,6 +1,6 @@
 module RaceTrack
 
-using ..ReinforcementLearning: Point, t
+using ..ReinforcementLearningSutton: Point, t
 
 include("./Commons.jl")
 include("./Game.jl")

@@ -38,28 +38,8 @@ end
 nstates(nrows::Integer, ncols::Integer)::Int = nrows * ncols
 nstates(track::Array{Int, 2})::Int = nstates(size(track)...)
 
-_ActionVectors = [Point(1, 0), Point(0, 1), Point(-1, 0), Point(0, -1)]
-
-"Stores a player's action of a game"
-struct Action
-    vector::Point
-end
-
-function Action(index::Integer)
-    Action(_ActionVectors[index])
-end
+abstract type Action end
 
 function Base.show(io::IO, m::Action)
     print(io, "Action", m.vector)
 end
-
-"Convert action to index, if action is a valid one"
-function index(action::Action)::Int
-    for (action_index, action_vector) in enumerate(_ActionVectors)
-        if action.vector == action_vector
-            action_index
-        end
-    end
-end
-
-nactions()::Int = size(_ActionVectors)[1]
