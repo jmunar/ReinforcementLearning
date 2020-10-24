@@ -1,8 +1,9 @@
+
 module ReinforcementLearningSutton
 
-include("./Commons.jl")
+include("./Commons/Commons.jl")
+include("./GridWorld/GridWorld.jl")
 
-include("./RaceTrack/RaceTrack.jl")
-include("./GridWorldWindy/GridWorldWindy.jl")
+#include("./RaceTrack/RaceTrack.jl")
 
 end # module
