@@ -5,11 +5,12 @@ include("./State.jl")
 include("./Action.jl")
 include("./Game.jl")
 include("./Player.jl")
+include("./Memory.jl")
 include("./Learning.jl")
 
 function play_game(game::Game,
                    player::Player,
-                   max_nrounds::Int = 10000000,
+                   max_nsteps::Int = 10000000,
                    learning::Union{Learning, Nothing} = nothing,
                    initial_state::Union{State, Nothing} = nothing
                    )::Int
@@ -22,7 +23,7 @@ function play_game(game::Game,
 
     nsteps = 0
     total_reward = 0
-    while ~finished(game) & (nsteps < max_nrounds)
+    while ~finished(game) & (nsteps < max_nsteps)
         nsteps += 1
 
         log_state(learning, state(game))

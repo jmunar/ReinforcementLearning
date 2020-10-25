@@ -1,4 +1,6 @@
 
+using StatsBase: sample, Weights
+
 "Base type for a player
 Concrete implementations must implement methods:
 decide_action(player, game, state)"
@@ -43,18 +45,19 @@ Q_index(player::PlayerεGreedy, state_index::Int, action_index::Int)::Int = play
 Q(player::PlayerεGreedy, state_index::Int)::Array{Float64, 1} = player.Q[Q_index(player, state_index)]
 Q(player::PlayerεGreedy, state_index::Int, action_index::Int)::Int = player.Q[Q_index(player, state_index, action_index)]
 
+function action_probabilities(player::PlayerεGreedy, state_index::Int)::Array{Float64, 1}
+
+    q_here = Q(player, state_index)
+    q_here_is_max = q_here .== maximum(q_here)
+    nmax = sum(q_here_is_max)
+
+    ε = player.ε
+    nactions = length(q_here)
+    pmax = (1 - ε) / nmax + ε / nactions
+    pmin = ε / nactions
+    map(is_max -> ifelse(is_max, pmax, pmin), q_here_is_max)
+end
+
 function decide_action(player::PlayerεGreedy, game::Game)::Action
-    possible_actions = actions(game)
-    state_index = index(state(game))
-
-    r = rand()
-    if r < player.ε
-        action_index = ceil(Int, length(possible_actions) * r / player.ε)
-    else
-        q_here = Q(player, state_index)
-        q_here_max = maximum(q_here)
-        action_index = rand((1:length(possible_actions))[q_here .== q_here_max])
-    end
-
-    possible_actions[action_index]
+    sample(actions(game), Weights(action_probabilities(player, index(state(game)))))
 end

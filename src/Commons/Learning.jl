@@ -2,113 +2,80 @@
 
 abstract type Learning end
 
-log_reward(learning::Union{Learning, Nothing}, reward::Int)::Int = reward
-log_state(learning::Union{Learning, Nothing}, state::State)::State = state
-log_action(learning::Union{Learning, Nothing}, action::Action)::Action = action
+log_reward(learning::Union{Learning, Nothing}, reward::Int)::Int = nothing
+log_state(learning::Union{Learning, Nothing}, state::State)::State = nothing
+log_action(learning::Union{Learning, Nothing}, action::Action)::Action = nothing
 log_finished_game(learning::Union{Learning, Nothing}) = nothing
 
-mutable struct LearningMonteCarloOffPolicy{PlayerType<:Player} <: Learning
-    player::PlayerType    
-end
+abstract type LearningAlgorithmTD end
 
-mutable struct LearningSarsa{PlayerType<:Player} <: Learning
-    player::PlayerType
+struct LearningAlgorithmSarsa <: LearningAlgorithmTD
     α::Float64
     γ::Float64
-    s::Int
-    a::Int
-    r::Int
-    sp::Int
-    ap::Int
-    initialized::Bool
-
-    function LearningSarsa(player::PlayerType, α::Float64, γ::Float64) where {PlayerType<:Player}
-        new{PlayerType}(player, α, γ, 0, 0, 0, 0, 0, false)
-    end
 end
 
-function log_reward(learning::LearningSarsa, reward::Int)
-    learning.r = reward
-    nothing
+function update_policy(algorithm::LearningAlgorithmSarsa, player::Player, memory::MemoryTemporalDifferences, final::Bool)
+    idx_s = Q_index(player, memory.s, memory.a)
+    idx_sp = Q_index(player, memory.sp, memory.ap)
+    Q_final = ifelse(final, 0., player.Q[idx_sp])
+    player.Q[idx_s] += algorithm.α * (memory.r + algorithm.γ * Q_final - player.Q[idx_s])
 end
 
-function log_state(learning::LearningSarsa, state::State)
-    learning.s = learning.sp
-    learning.sp = index(state)
-    nothing
-end
-
-function log_action(learning::LearningSarsa, action::Action)
-    learning.a = learning.ap
-    learning.ap = index(action)
-
-    if learning.initialized
-        player = learning.player
-        idx_s = Q_index(player, learning.s, learning.a)
-        idx_sp = Q_index(player, learning.sp, learning.ap)
-        player.Q[idx_s] += learning.α * (learning.r + learning.γ * player.Q[idx_sp] - player.Q[idx_s])
-    else
-        learning.initialized = true
-    end
-
-    nothing
-end
-
-function log_finished_game(learning::LearningSarsa)
-    player = learning.player
-    idx_s = Q_index(player, learning.s, learning.a)
-    player.Q[idx_s] += learning.α * (learning.r - player.Q[idx_s])
-    learning.initialized = false
-    nothing
-end
-
-mutable struct LearningQ{PlayerType<:Player} <: Learning
-    player::PlayerType
+struct LearningAlgorithmQ <: LearningAlgorithmTD
     α::Float64
     γ::Float64
-    s::Int
-    a::Int
-    r::Int
-    sp::Int
-    ap::Int
-    initialized::Bool
+end
 
-    function LearningQ(player::PlayerType, α::Float64, γ::Float64) where {PlayerType<:Player}
-        new{PlayerType}(player, α, γ, 0, 0, 0, 0, 0, false)
+function update_policy(algorithm::LearningAlgorithmQ, player::Player, memory::MemoryTemporalDifferences, final::Bool)
+    idx_s = Q_index(player, memory.s, memory.a)
+    idx_sp = Q_index(player, memory.sp)
+    Q_final = ifelse(final, 0., maximum(player.Q[idx_sp]))
+    player.Q[idx_s] += algorithm.α * (memory.r + algorithm.γ * Q_final - player.Q[idx_s])
+end
+
+struct LearningAlgorithmSarsaExpected <: LearningAlgorithmTD
+    α::Float64
+    γ::Float64
+end
+
+function update_policy(algorithm::LearningAlgorithmSarsaExpected, player::Player, memory::MemoryTemporalDifferences, final::Bool)
+    idx_s = Q_index(player, memory.s, memory.a)
+    idx_sp = Q_index(player, memory.sp)
+    ps = action_probabilities(player, memory.sp)
+    Q_final = ifelse(final, 0., sum(player.Q[idx_sp] .* ps))
+    player.Q[idx_s] += algorithm.α * (memory.r + algorithm.γ * Q_final - player.Q[idx_s])
+end
+
+
+mutable struct LearningTD{PlayerType<:Player, AlgorithmType<:LearningAlgorithmTD} <: Learning
+    player::PlayerType
+    memory::MemoryTemporalDifferences
+    algorithm::AlgorithmType
+
+    function LearningTD(player::PlayerType, algorithm::AlgorithmType) where {PlayerType<:Player, AlgorithmType<:LearningAlgorithmTD}
+        new{PlayerType, AlgorithmType}(player, MemoryTemporalDifferences(), algorithm)
     end
 end
 
-function log_reward(learning::LearningQ, reward::Int)
-    learning.r = reward
-    nothing
-end
+log_reward(learning::LearningTD, reward::Int) = log_reward(learning.memory, reward)
+log_state(learning::LearningTD, state::State) = log_state(learning.memory, state)
 
-function log_state(learning::LearningQ, state::State)
-    learning.s = learning.sp
-    learning.sp = index(state)
-    nothing
-end
+function log_action(learning::LearningTD, action::Action)
+    log_action(learning.memory, action)
 
-function log_action(learning::LearningQ, action::Action)
-    learning.a = learning.ap
-    learning.ap = index(action)
-
-    if learning.initialized
-        player = learning.player
-        idx_s = Q_index(player, learning.s, learning.a)
-        idx_sp = Q_index(player, learning.sp)
-        player.Q[idx_s] += learning.α * (learning.r + learning.γ * maximum(player.Q[idx_sp]) - player.Q[idx_s])
-    else
-        learning.initialized = true
+    if learning.memory.initialized
+        update_policy(learning.algorithm, learning.player, learning.memory, false)
     end
 
     nothing
 end
 
-function log_finished_game(learning::LearningQ)
-    player = learning.player
-    idx_s = Q_index(player, learning.s, learning.a)
-    player.Q[idx_s] += learning.α * (learning.r - player.Q[idx_s])
-    learning.initialized = false
+function log_finished_game(learning::LearningTD)
+    update_policy(learning.algorithm, learning.player, learning.memory, false)
+    learning.memory.initialized = false
     nothing
 end
+
+LearningSarsa(player::Player, α::Float64, γ::Float64) = LearningTD(player, LearningAlgorithmSarsa(α, γ))
+LearningQ(player::Player, α::Float64, γ::Float64) = LearningTD(player, LearningAlgorithmQ(α, γ))
+LearningSarsaExpected(player::Player, α::Float64, γ::Float64) = LearningTD(player, LearningAlgorithmSarsaExpected(α, γ))
