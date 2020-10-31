@@ -21,14 +21,14 @@ struct GameGridWorldStaticBase <: GameGridWorld
     state_start::StateGridWorldStatic
     state_goal::StateGridWorldStatic
     allowed_movements::String
-
-    wind::Tuple{Nothing}
+    allowed_movements_list::Array{ActionGridWorldStatic, 1}
 
     function GameGridWorldStaticBase(nrows::Int, ncols::Int, pos_start::Point, pos_goal::Point, allowed_movements::String)
         state_start = StateGridWorldStatic(nrows, ncols, pos_start)
         state_goal = StateGridWorldStatic(nrows, ncols, pos_goal)
         state = StateGridWorldStatic(nrows, ncols, pos_start)
-        new(nrows, ncols, Ref(state), state_start, state_goal, allowed_movements)
+        allowed_movements_list = _ActionGridWorldStaticSets[allowed_movements]
+        new(nrows, ncols, Ref(state), state_start, state_goal, allowed_movements, allowed_movements_list)
     end
 end
 
@@ -36,7 +36,7 @@ state(game::GameGridWorldStaticBase)::StateGridWorldStatic = game.state[]
 state_set(game::GameGridWorldStaticBase, state::StateGridWorldStatic) = (game.state[] = state)
 states(game::GameGridWorldStaticBase)::Array{StateGridWorldStatic, 1} = map(i -> StateGridWorldStatic(nrows(game), ncols(game), i), 1:nstates(game.state_start))
 actions(game::GameGridWorldStaticBase)::Array{ActionGridWorldStatic, 1} = actions(game, state(game))
-actions(game::GameGridWorldStaticBase, state::StateGridWorldStatic)::Array{ActionGridWorldStatic, 1} = _ActionGridWorldStaticSets[game.allowed_movements]
+actions(game::GameGridWorldStaticBase, state::StateGridWorldStatic)::Array{ActionGridWorldStatic, 1} = game.allowed_movements_list
 finished(game::GameGridWorldStaticBase)::Bool = (state(game) == game.state_goal)
 restart(game::GameGridWorldStaticBase) = state_set(game, game.state_start)
 nrows(game::GameGridWorldStaticBase)::Int = game.nrows
