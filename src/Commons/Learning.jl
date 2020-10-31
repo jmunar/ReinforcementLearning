@@ -42,6 +42,11 @@ function update_policy(algorithm::LearningAlgorithmSarsaExpected, player::Player
     idx_s = Q_index(player, memory.s, memory.a)
     idx_sp = Q_index(player, memory.sp)
     ps = action_probabilities(player, memory.sp)
+    Q_final = 0.
+    if ~final
+        Q_final 
+    end
+
     Q_final = ifelse(final, 0., sum(player.Q[idx_sp] .* ps))
     player.Q[idx_s] += algorithm.α * (memory.r + algorithm.γ * Q_final - player.Q[idx_s])
 end

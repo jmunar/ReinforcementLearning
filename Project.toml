@@ -2,6 +2,3 @@ name = "ReinforcementLearningSutton"
 uuid = "6417796d-59bf-4f93-aaf0-e2be7741ea64"
 authors = ["Javier Munarriz <jmunarriz@gmx.com>"]
 version = "0.1.0"
-
-[deps]
-StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
