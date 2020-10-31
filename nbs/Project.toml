@@ -1,7 +1,9 @@
 [deps]
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 IJulia = "7073ff75-c697-5162-941a-fcdaad2a7d2a"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+ProfileVega = "4391764f-db79-4bd7-a4c6-f9062de4300e"
 ReinforcementLearningSutton = "6417796d-59bf-4f93-aaf0-e2be7741ea64"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
