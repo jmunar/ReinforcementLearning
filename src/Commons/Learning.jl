@@ -52,7 +52,7 @@ function update_policy(algorithm::LearningAlgorithmSarsaExpected, player::Player
 end
 
 
-mutable struct LearningTD{PlayerType<:Player, AlgorithmType<:LearningAlgorithmTD} <: Learning
+struct LearningTD{PlayerType<:Player, AlgorithmType<:LearningAlgorithmTD} <: Learning
     player::PlayerType
     memory::MemoryTemporalDifferences
     algorithm::AlgorithmType
