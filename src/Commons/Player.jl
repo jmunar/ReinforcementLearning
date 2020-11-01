@@ -27,28 +27,20 @@ end
 struct PlayerεGreedy <: Player
     game::Game
     ε::Float64
-    Q::Array{Float64, 1}
-    Q_lims::Array{Int, 2}
+    Q::Array{Array{Float64, 1}, 1}
     # Avoid memory allocation using these elements
     action_probs::Array{Float64, 1}
 
     function PlayerεGreedy(game::Game, ε::Float64)
-        actions_per_state = cumsum(map(s -> length(actions(game, s)), states(game)))
-        Q_lims = hcat(1 .+ [0, actions_per_state[1:end-1]...], actions_per_state)
-        Q = zeros(Float64, Q_lims[end])
-        action_probs = Array{Float64, 1}(undef, maximum(actions_per_state))
-        new(game, ε, Q, Q_lims, action_probs)
+        Q = map(s -> zeros(Float64, length(actions(game, s))), states(game))
+        action_probs = Array{Float64, 1}(undef, maximum(map(length, Q)))
+        new(game, ε, Q, action_probs)
     end
 end
 
-Q_index(player::PlayerεGreedy, state_index::Int)::UnitRange = player.Q_lims[state_index, 1]:player.Q_lims[state_index, 2]
-Q_index(player::PlayerεGreedy, state_index::Int, action_index::Int)::Int = player.Q_lims[state_index, 1] - 1 + action_index
-Q(player::PlayerεGreedy, state_index::Int) = @view player.Q[Q_index(player, state_index)]
-Q(player::PlayerεGreedy, state_index::Int, action_index::Int)::Int = player.Q[Q_index(player, state_index, action_index)]
-
 function action_probabilities(player::PlayerεGreedy, state_index::Int)
 
-    qs = Q(player, state_index)
+    qs = player.Q[state_index]
     nactions = length(qs)
 
     q_max = 0.

@@ -13,7 +13,7 @@ function play_game(game::Game,
                    max_nsteps::Int = 10000000,
                    learning::Union{Learning, Nothing} = nothing,
                    initial_state::Union{State, Nothing} = nothing
-                   )::Int
+                   )::Tuple{Int, Int}
 
     restart(game)
 
@@ -26,17 +26,20 @@ function play_game(game::Game,
     while ~finished(game) & (nsteps < max_nsteps)
         nsteps += 1
 
-        log_state(learning, state(game))
+        state_set(learning, state(game))
         action = decide_action(player, game)
-        log_action(learning, action)
+        action_set(learning, action)
 
         reward = update(game, action)
-        log_reward(learning, reward)
+        reward_set(learning, reward)
 
         total_reward += reward
     end
+
+    state_set(learning, state(game))
     log_finished_game(learning)
-    total_reward
+
+    return nsteps, total_reward
 end
 
 end
