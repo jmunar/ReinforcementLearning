@@ -31,12 +31,8 @@ step_random(memory::MemoryLastSteps) = rand(memory.steps[1:nstep(memory)])
 restart(memory::MemoryLastSteps) = begin memory.nstep = 0 end
 
 function state_set(memory::MemoryLastSteps, state::State)
-    s = index(state)
-    if nstep(memory) > 0
-        memory.steps[n2i(memory)].sp = s
-    end
     memory.nstep += 1
-    memory.steps[n2i(memory)].s = s
+    memory.steps[n2i(memory)].s = index(state)
     nothing
 end
 
@@ -49,6 +45,12 @@ function reward_set(memory::MemoryLastSteps, reward)
     memory.steps[n2i(memory)].r = reward
     nothing
 end
+
+function state_outcome_set(memory::MemoryLastSteps, state::State)
+    memory.steps[n2i(memory)].sp = index(state)
+    nothing
+end
+
 
 "Memory of last steps with random selection for reviving experiences"
 mutable struct MemoryDeterministic{RewardType} <: Memory
@@ -70,21 +72,20 @@ step(memory::MemoryDeterministic, n::Int)::MemoryRecord = step(memory.steps, n)
 step(memory::MemoryDeterministic)::MemoryRecord = step(memory.steps)
 restart(memory::MemoryDeterministic) = restart(memory.steps)
 
-function state_set(memory::MemoryDeterministic, state::State)
-    state_set(memory.steps, state)
 
-    if nstep(memory) > 1
-        last_step = step(memory, 1)
-        s = last_step.s
-        a = last_step.a
-        if ~memory.state_action_visited[s][a]
-            memory.state_action_visited[s][a] = true
-            memory.steps_unique.nstep += 1
-            memory.steps_unique.steps[memory.steps_unique.nstep] = last_step
-        end
+state_set(memory::MemoryDeterministic, state::State) = state_set(memory.steps, state)
+action_set(memory::MemoryDeterministic, action::Action) = action_set(memory.steps, action)
+reward_set(memory::MemoryDeterministic, reward) = reward_set(memory.steps, reward)
+
+function state_outcome_set(memory::MemoryDeterministic, state::State)
+    state_outcome_set(memory.steps, state)
+    last_step = step(memory)
+    s = last_step.s
+    a = last_step.a
+    if ~memory.state_action_visited[s][a]
+        memory.state_action_visited[s][a] = true
+        memory.steps_unique.nstep += 1
+        memory.steps_unique.steps[memory.steps_unique.nstep] = last_step
     end
     nothing
 end
-
-action_set(memory::MemoryDeterministic, action::Action) = action_set(memory.steps, action)
-reward_set(memory::MemoryDeterministic, reward) = reward_set(memory.steps, reward)

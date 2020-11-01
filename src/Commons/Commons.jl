@@ -32,11 +32,11 @@ function play_game(game::Game,
 
         reward = update(game, action)
         reward_set(learning, reward)
-
         total_reward += reward
+
+        state_outcome_set(learning, state(game))
     end
 
-    state_set(learning, state(game))
     log_finished_game(learning)
 
     return nsteps, total_reward
