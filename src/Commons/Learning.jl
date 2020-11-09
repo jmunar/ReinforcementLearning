@@ -1,121 +1,133 @@
 
 abstract type Learning end
 
-state_set(learning::Union{Learning, Nothing}, state::State)::State = nothing
-action_set(learning::Union{Learning, Nothing}, action::Action)::Action = nothing
-reward_set(learning::Union{Learning, Nothing}, reward::Int)::Int = nothing
-state_outcome_set(learning::Union{Learning, Nothing}, state::State)::State = nothing
-log_finished_game(learning::Union{Learning, Nothing}) = nothing
+# Set default actions whenever there is no learning involved
+state_set(learning::Nothing, state::State) = nothing
+action_set(learning::Nothing, action::Action) = nothing
+reward_set(learning::Nothing, reward::Int) = nothing
+state_outcome_set(learning::Nothing, state::State) = nothing
+log_finished_game(learning::Nothing) = nothing
 
-abstract type LearningAlgorithmTD end
+memory(learning::Learning) = error("To be implemented by concrete type")
+player(learning::Learning) = error("To be implemented by concrete type")
+update_policy(learning::Learning, final::Bool) = error("To be implemented by concrete type")
 
-struct LearningAlgorithmSarsa <: LearningAlgorithmTD
-    α::Float64
-    γ::Float64
+state_set(learning::Learning, state::State) = state_set(memory(learning), state)
+action_set(learning::Learning, action::Action) = action_set(memory(learning), action)
+reward_set(learning::Learning, reward::Int) = reward_set(memory(learning), reward)
+
+function state_outcome_set(learning::Learning, state::State)
+    state_outcome_set(memory(learning), state)
+    update_policy(learning, false)
+    nothing
 end
 
-function update_policy(algorithm::LearningAlgorithmSarsa, player::Player, memory::MemoryLastSteps, final::Bool)
+function log_finished_game(learning::Learning)
+    update_policy(learning, true)
+    restart(memory(learning))
+    nothing
+end
+
+struct LearningSarsa{PlayerType <: Player} <: Learning
+    player::PlayerType
+    memory::MemoryLastSteps{Int}
+    α::Float64
+    γ::Float64
+
+    LearningSarsa(player::T, α::Float64, γ::Float64) where {T <: Player} = new{T}(player, MemoryLastSteps{Int}(2), α, γ)
+end
+
+function update_policy(learning::LearningSarsa, final::Bool)
+    play, mem = player(learning), memory(learning)
     n = final ? 0 : 1
-    if nstep(memory) > n
-        last_step = step(memory, n)
+    if nstep(mem) > n
+        last_step = step(mem, n)
         s = last_step.s
         a = last_step.a
         r = last_step.r
-        Q_update = ifelse(final, 0, player.Q[last_step.sp][step(memory).a])
-        player.Q[s][a] += algorithm.α * (r + algorithm.γ * Q_update - player.Q[s][a])
+        Q_update = ifelse(final, 0, play.Q[last_step.sp][step(mem).a])
+        play.Q[s][a] += learning.α * (r + learning.γ * Q_update - play.Q[s][a])
     end
 end
 
-struct LearningAlgorithmQ <: LearningAlgorithmTD
+struct LearningQ{PlayerType <: Player} <: Learning
+    player::PlayerType
+    memory::MemoryLastSteps{Int}
     α::Float64
     γ::Float64
+
+    LearningQ(player::T, α::Float64, γ::Float64) where {T <: Player} = new{T}(player, MemoryLastSteps{Int}(2), α, γ)
 end
 
-function _update_policy_qlearning(algorithm, player::Player, memory::Memory, final::Bool)
+function _update_policy_qlearning(player::Player, mem::Memory, α::Float64, γ::Float64, final::Bool)
     n = final ? 0 : 1
-    if nstep(memory) > n
-        last_step = step(memory, n)
+    if nstep(mem) > n
+        last_step = step(mem, n)
         s = last_step.s
         a = last_step.a
         r = last_step.r
         sp = last_step.sp
         Q_update = ifelse(final, 0, maximum(player.Q[sp]))
-        player.Q[s][a] += algorithm.α * (r + algorithm.γ * Q_update - player.Q[s][a])
+        player.Q[s][a] += α * (r + γ * Q_update - player.Q[s][a])
     end
 end
 
-function update_policy(algorithm::LearningAlgorithmQ, player::Player, memory::MemoryLastSteps, final::Bool)
-    _update_policy_qlearning(algorithm, player, memory, final)
+function update_policy(learning::LearningQ, final::Bool)
+    _update_policy_qlearning(player(learning), memory(learning), learning.α, learning.γ, final)
 end
 
-struct LearningAlgorithmSarsaExpected <: LearningAlgorithmTD
+struct LearningSarsaExpected{PlayerType <: Player} <: Learning
+    player::PlayerType
+    memory::MemoryLastSteps{Int}
     α::Float64
     γ::Float64
+
+    LearningSarsaExpected(player::T, α::Float64, γ::Float64) where {T <: Player} = new{T}(player, MemoryLastSteps{Int}(2), α, γ)
 end
 
-function update_policy(algorithm::LearningAlgorithmSarsaExpected, player::Player, memory::MemoryLastSteps, final::Bool)
+function update_policy(learning::LearningSarsaExpected, final::Bool)
+    play, mem = player(learning), memory(learning)
     n = final ? 0 : 1
-    if nstep(memory) > n
-        last_step = step(memory, n)
+    if nstep(mem) > n
+        last_step = step(mem, n)
         s = last_step.s
         a = last_step.a
         r = last_step.r
         sp = last_step.sp
-        Q_update = ifelse(final, 0, sum(player.Q[sp] .* action_probabilities(player, s)))
-        player.Q[s][a] += algorithm.α * (r + algorithm.γ * Q_update - player.Q[s][a])
+        Q_update = ifelse(final, 0, sum(play.Q[sp] .* action_probabilities(play, s)))
+        play.Q[s][a] += learning.α * (r + learning.γ * Q_update - play.Q[s][a])
     end
 end
 
-
-struct LearningAlgorithmDynaQ <: LearningAlgorithmTD
+struct LearningDynaQ{PlayerType <: Player} <: Learning
+    player::PlayerType
+    memory::MemoryLastSteps{Int}
     n::Int
     α::Float64
     γ::Float64
+
+    LearningDynaQ(player::T, n::Int, α::Float64, γ::Float64) where {T <: Player} = new{T}(player, MemoryDeterministic{Int}(map(length, player.Q)), n, α, γ)
 end
 
-function update_policy(algorithm::LearningAlgorithmDynaQ, player::Player, memory::MemoryDeterministic, final::Bool)
+function update_policy(learning::LearningDynaQ, final::Bool)
+    play, mem = player(learning), memory(learning)
 
     # Standard Q-learning
-    _update_policy_qlearning(algorithm, player, memory, final)
+    _update_policy_qlearning(play, mem, learning.α, learning.γ, final)
 
     # Replay with environment model
-    if nstep(memory) > 1
-        for i in 1:algorithm.n
-            rand_step = step_random(memory.steps_unique)
+    if nstep(mem) > 1
+        for i in 1:learning.n
+            rand_step = step_random(mem.steps_unique)
             s = rand_step.s
             a = rand_step.a
             r = rand_step.r
             sp = rand_step.sp
-            player.Q[s][a] += algorithm.α * (r + algorithm.γ * maximum(player.Q[sp]) - player.Q[s][a])
+            play.Q[s][a] += learning.α * (r + learning.γ * maximum(play.Q[sp]) - play.Q[s][a])
         end
     end
 
 end
 
-struct LearningTD{PlayerType<:Player, MemoryType<:Memory, AlgorithmType<:LearningAlgorithmTD} <: Learning
-    player::PlayerType
-    memory::MemoryType
-    algorithm::AlgorithmType
-end
-
-
-state_set(learning::LearningTD, state::State) = state_set(learning.memory, state)
-action_set(learning::LearningTD, action::Action) = action_set(learning.memory, action)
-reward_set(learning::LearningTD, reward::Int) = reward_set(learning.memory, reward)
-
-function state_outcome_set(learning::LearningTD, state::State)
-    state_outcome_set(learning.memory, state)
-    update_policy(learning.algorithm, learning.player, learning.memory, false)
-    nothing
-end
-
-function log_finished_game(learning::LearningTD)
-    update_policy(learning.algorithm, learning.player, learning.memory, true)
-    restart(learning.memory)
-    nothing
-end
-
-LearningSarsa(player::Player, α::Float64, γ::Float64) = LearningTD(player, MemoryLastSteps{Int}(2), LearningAlgorithmSarsa(α, γ))
-LearningQ(player::Player, α::Float64, γ::Float64) = LearningTD(player, MemoryLastSteps{Int}(2), LearningAlgorithmQ(α, γ))
-LearningSarsaExpected(player::Player, α::Float64, γ::Float64) = LearningTD(player, MemoryLastSteps{Int}(2), LearningAlgorithmSarsaExpected(α, γ))
-LearningDynaQ(player::Player, n::Int, α::Float64, γ::Float64) = LearningTD(player, MemoryDeterministic{Int}(map(length, player.Q)), LearningAlgorithmDynaQ(n, α, γ))
+player(learning::Union{LearningSarsa, LearningQ, LearningSarsaExpected, LearningDynaQ}) = learning.player
+memory(learning::Union{LearningSarsa, LearningQ, LearningSarsaExpected, LearningDynaQ}) = learning.memory
