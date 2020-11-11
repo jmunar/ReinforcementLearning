@@ -5,6 +5,7 @@ decide_action(player, game, state)"
 abstract type Player end
 
 struct PlayerDeterministic{T} <: Player
+    game::Game
     policy::Array{T, 1}
 end
 
@@ -18,6 +19,7 @@ function decide_action(player::PlayerDeterministic, game::Game)::Action
 end
 
 struct PlayerRandom <: Player
+    game::Game
 end
 
 function decide_action(player::PlayerRandom, game::Game)::Action

@@ -39,6 +39,3 @@ end
 function index(state::StateGridWorldStatic)::Int
     return state.index
 end
-
-"Number of states, given board dimensions"
-nstates(state::StateGridWorldStatic)::Int = state.nrows * state.ncols
