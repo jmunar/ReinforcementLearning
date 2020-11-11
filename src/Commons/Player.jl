@@ -60,7 +60,7 @@ function action_probabilities(player::PlayerεGreedy, state_index::Int)
     pmax = (1 - ε) / nmax + ε / nactions
     pmin = ε / nactions
     for (i, q) in enumerate(qs)
-        player.action_probs[i] = ifelse(q == q_max, pmax, pmin)
+        player.action_probs[i] = q == q_max ? pmax : pmin
     end
 
     @view player.action_probs[1:nactions]

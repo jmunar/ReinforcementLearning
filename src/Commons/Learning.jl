@@ -45,7 +45,7 @@ function update_policy(learning::LearningSarsa, final::Bool)
         s = last_step.s
         a = last_step.a
         r = last_step.r
-        Q_update = ifelse(final, 0, play.Q[last_step.sp][step(mem).a])
+        Q_update = final ? 0 : play.Q[last_step.sp][step(mem).a]
         play.Q[s][a] += learning.α * (r + learning.γ * Q_update - play.Q[s][a])
     end
 end
@@ -67,7 +67,7 @@ function _update_policy_qlearning(player::Player, mem::Memory, α::Float64, γ::
         a = last_step.a
         r = last_step.r
         sp = last_step.sp
-        Q_update = ifelse(final, 0, maximum(player.Q[sp]))
+        Q_update = final ? 0 : maximum(player.Q[sp])
         player.Q[s][a] += α * (r + γ * Q_update - player.Q[s][a])
     end
 end
@@ -94,7 +94,7 @@ function update_policy(learning::LearningSarsaExpected, final::Bool)
         a = last_step.a
         r = last_step.r
         sp = last_step.sp
-        Q_update = ifelse(final, 0, sum(play.Q[sp] .* action_probabilities(play, s)))
+        Q_update = final ? 0 : sum(play.Q[sp] .* action_probabilities(play, s))
         play.Q[s][a] += learning.α * (r + learning.γ * Q_update - play.Q[s][a])
     end
 end
