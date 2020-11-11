@@ -34,7 +34,8 @@ end
 
 state(game::GameGridWorldStaticBase)::StateGridWorldStatic = game.state[]
 state_set(game::GameGridWorldStaticBase, state::StateGridWorldStatic) = (game.state[] = state)
-states(game::GameGridWorldStaticBase)::Array{StateGridWorldStatic, 1} = map(i -> StateGridWorldStatic(nrows(game), ncols(game), i), 1:nstates(game.state_start))
+nstates(game::GameGridWorldStaticBase)::Int = game.nrows * game.ncols
+states(game::GameGridWorldStaticBase)::Array{StateGridWorldStatic, 1} = map(i -> StateGridWorldStatic(nrows(game), ncols(game), i), 1:nstates(game))
 actions(game::GameGridWorldStaticBase)::Array{ActionGridWorldStatic, 1} = actions(game, state(game))
 actions(game::GameGridWorldStaticBase, state::StateGridWorldStatic)::Array{ActionGridWorldStatic, 1} = game.allowed_movements_list
 finished(game::GameGridWorldStaticBase)::Bool = (state(game) == game.state_goal)

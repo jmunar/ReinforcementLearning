@@ -1,8 +1,7 @@
 
 "Base type for a state in the 2D grid world
 Concrete implementations must implement methods:
-* index(state)
-* nstates(state)"
+* index(state)"
 abstract type StateGridWorld <: State end
 
 "Stores the state of a game"
