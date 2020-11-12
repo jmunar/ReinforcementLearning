@@ -40,23 +40,23 @@ step(memory::MemoryLastSteps)::MemoryRecord = memory.steps[n2i(memory)]
 step_random(memory::MemoryLastSteps)::MemoryRecord = rand(memory.steps[1:nstep(memory)])
 restart(memory::MemoryLastSteps) = begin memory.nstep[] = 0 end
 
-function state_set(memory::MemoryLastSteps, state::State)
+function log_state(memory::MemoryLastSteps, state::State)
     memory.nstep[] += 1
     memory.step_temp.s = index(state)
     nothing
 end
 
-function action_set(memory::MemoryLastSteps, action::Action)
+function log_action(memory::MemoryLastSteps, action::Action)
     memory.step_temp.a = index(action)
     nothing
 end
 
-function reward_set(memory::MemoryLastSteps, reward)
+function log_reward(memory::MemoryLastSteps, reward)
     memory.step_temp.r = reward
     nothing
 end
 
-function state_outcome_set(memory::MemoryLastSteps, state::State)
+function log_state_outcome(memory::MemoryLastSteps, state::State)
     memory.step_temp.sp = index(state)
     memory.steps[n2i(memory)] = MemoryRecord(memory.step_temp)
     nothing
@@ -84,12 +84,12 @@ step(memory::MemoryDeterministic)::MemoryRecord = step(memory.steps)
 restart(memory::MemoryDeterministic) = restart(memory.steps)
 
 
-state_set(memory::MemoryDeterministic, state::State) = state_set(memory.steps, state)
-action_set(memory::MemoryDeterministic, action::Action) = action_set(memory.steps, action)
-reward_set(memory::MemoryDeterministic, reward) = reward_set(memory.steps, reward)
+log_state(memory::MemoryDeterministic, state::State) = log_state(memory.steps, state)
+log_action(memory::MemoryDeterministic, action::Action) = log_action(memory.steps, action)
+log_reward(memory::MemoryDeterministic, reward) = log_reward(memory.steps, reward)
 
-function state_outcome_set(memory::MemoryDeterministic, state::State)
-    state_outcome_set(memory.steps, state)
+function log_state_outcome(memory::MemoryDeterministic, state::State)
+    log_state_outcome(memory.steps, state)
     last_step = step(memory)
     s = last_step.s
     a = last_step.a

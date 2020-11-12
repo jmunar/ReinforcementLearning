@@ -2,22 +2,22 @@
 abstract type Learning end
 
 # Set default actions whenever there is no learning involved
-state_set(learning::Nothing, state::State) = nothing
-action_set(learning::Nothing, action::Action) = nothing
-reward_set(learning::Nothing, reward::Int) = nothing
-state_outcome_set(learning::Nothing, state::State) = nothing
+log_state(learning::Nothing, state::State) = nothing
+log_action(learning::Nothing, action::Action) = nothing
+log_reward(learning::Nothing, reward::Int) = nothing
+log_state_outcome(learning::Nothing, state::State) = nothing
 log_finished_game(learning::Nothing) = nothing
 
-memory(learning::Learning) = error("To be implemented by concrete type")
-player(learning::Learning) = error("To be implemented by concrete type")
-update_policy(learning::Learning, final::Bool) = error("To be implemented by concrete type")
+memory(learning::Learning) = error("memory(learning) to be implemented by concrete type")
+player(learning::Learning) = error("player(learning) to be implemented by concrete type")
+update_policy(learning::Learning, final::Bool) = error("update_policy(learning, final) to be implemented by concrete type")
 
-state_set(learning::Learning, state::State) = state_set(memory(learning), state)
-action_set(learning::Learning, action::Action) = action_set(memory(learning), action)
-reward_set(learning::Learning, reward::Int) = reward_set(memory(learning), reward)
+log_state(learning::Learning, state::State) = log_state(memory(learning), state)
+log_action(learning::Learning, action::Action) = log_action(memory(learning), action)
+log_reward(learning::Learning, reward::Int) = log_reward(memory(learning), reward)
 
-function state_outcome_set(learning::Learning, state::State)
-    state_outcome_set(memory(learning), state)
+function log_state_outcome(learning::Learning, state::State)
+    log_state_outcome(memory(learning), state)
     update_policy(learning, false)
     nothing
 end

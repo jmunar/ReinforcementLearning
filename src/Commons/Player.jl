@@ -1,8 +1,12 @@
 
 "Base type for a player
 Concrete implementations must implement methods:
-decide_action(player, game, state)"
+game(player)
+decide_action(player)"
 abstract type Player end
+
+game(player::Player) = error("game(player) to be implemented by concrete type") 
+decide_action(player::Player) = error("decide_action(player) to be implemented by concrete type") 
 
 struct PlayerDeterministic{T} <: Player
     game::Game
@@ -79,3 +83,5 @@ function decide_action(player::PlayerεGreedy, game::Game)::Action
     end
 
 end
+
+game(player::Union{PlayerDeterministic, PlayerRandom, PlayerεGreedy}) = player.game
