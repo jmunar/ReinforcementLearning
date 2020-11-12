@@ -3,51 +3,62 @@ import Base.zero
 
 abstract type Memory end
 
-mutable struct MemoryRecord{RewardType}
+mutable struct MemoryRecordTemp{RewardType <: Number}
     s::Int
     a::Int
     r::RewardType
     sp::Int
 end
 
+struct MemoryRecord{RewardType <: Number}
+    s::Int
+    a::Int
+    r::RewardType
+    sp::Int
+end
+
+MemoryRecord(r::MemoryRecordTemp) = MemoryRecord(r.s, r.a, r.r, r.sp)
+
 "Memory of last steps in game"
-mutable struct MemoryLastSteps{RewardType} <: Memory
+struct MemoryLastSteps{RewardType} <: Memory
     steps::Vector{MemoryRecord{RewardType}}
-    nstep::Int
+    nstep::Base.RefValue{Int}
+    step_temp::MemoryRecordTemp{RewardType}
 
     function MemoryLastSteps{RewardType}(capacity::Int) where {RewardType <: Number}
-        new(map(i -> MemoryRecord(0, 0, RewardType(0), 0), 1:capacity), 0)
+        new(map(i -> MemoryRecord(0, 0, RewardType(0), 0), 1:capacity), Ref(0), MemoryRecordTemp(0, 0, RewardType(0), 0))
     end
 end
 
 capacity(memory::MemoryLastSteps) = length(memory.steps)
-nstep(memory::MemoryLastSteps)::Int = memory.nstep
+nstep(memory::MemoryLastSteps)::Int = memory.nstep[]
 
 n2i(memory::MemoryLastSteps, n::Int)::Int = 1 + (nstep(memory) - n - 1) % capacity(memory)
-n2i(memory::MemoryLastSteps) = n2i(memory, 0)
+n2i(memory::MemoryLastSteps)::Int = n2i(memory, 0)
 step(memory::MemoryLastSteps, n::Int)::MemoryRecord = memory.steps[n2i(memory, n)]
 step(memory::MemoryLastSteps)::MemoryRecord = memory.steps[n2i(memory)]
-step_random(memory::MemoryLastSteps) = rand(memory.steps[1:nstep(memory)])
-restart(memory::MemoryLastSteps) = begin memory.nstep = 0 end
+step_random(memory::MemoryLastSteps)::MemoryRecord = rand(memory.steps[1:nstep(memory)])
+restart(memory::MemoryLastSteps) = begin memory.nstep[] = 0 end
 
 function state_set(memory::MemoryLastSteps, state::State)
-    memory.nstep += 1
-    memory.steps[n2i(memory)].s = index(state)
+    memory.nstep[] += 1
+    memory.step_temp.s = index(state)
     nothing
 end
 
 function action_set(memory::MemoryLastSteps, action::Action)
-    memory.steps[n2i(memory)].a = index(action)
+    memory.step_temp.a = index(action)
     nothing
 end
 
 function reward_set(memory::MemoryLastSteps, reward)
-    memory.steps[n2i(memory)].r = reward
+    memory.step_temp.r = reward
     nothing
 end
 
 function state_outcome_set(memory::MemoryLastSteps, state::State)
-    memory.steps[n2i(memory)].sp = index(state)
+    memory.step_temp.sp = index(state)
+    memory.steps[n2i(memory)] = MemoryRecord(memory.step_temp)
     nothing
 end
 
