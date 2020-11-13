@@ -1,6 +1,6 @@
 
 using ReinforcementLearningSutton.Commons: Game
-import ReinforcementLearningSutton.Commons: state, log_state, nstates, states, actions, finished, restart, update
+import ReinforcementLearningSutton.Commons: state, state_set, nstates, states, actions, finished, restart, update
 
 struct GameLineWorldBase <: Game
     nstates::Int

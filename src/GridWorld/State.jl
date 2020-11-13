@@ -1,4 +1,7 @@
 
+using ReinforcementLearningSutton.Commons: Point, State
+import ReinforcementLearningSutton.Commons: index
+
 "Base type for a state in the 2D grid world
 Concrete implementations must implement methods:
 * index(state)"

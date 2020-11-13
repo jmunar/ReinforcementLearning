@@ -1,4 +1,7 @@
 
+using ReinforcementLearningSutton.Commons: Game
+import ReinforcementLearningSutton.Commons: state, state_set, nstates, states, actions, finished, restart, update
+
 "Base type for a game in the 2D grid world
 Concrete implementations must implement methods:
 * state(game)

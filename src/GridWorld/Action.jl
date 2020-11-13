@@ -1,4 +1,7 @@
 
+using ReinforcementLearningSutton.Commons: Action
+import ReinforcementLearningSutton.Commons: index
+
 "Base type for an action in the 2D grid world"
 abstract type ActionGridWorld <: Action end
 
