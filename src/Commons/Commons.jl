@@ -3,6 +3,7 @@ module Commons
 include("./Point.jl")
 include("./State.jl")
 include("./Action.jl")
+include("./Callback.jl")
 include("./Game.jl")
 include("./Player.jl")
 include("./Memory.jl")
@@ -11,7 +12,7 @@ include("./Learning.jl")
 function play_game(game::Game,
                    player::Player,
                    max_nsteps::Int = 10000000,
-                   learning::Union{Learning, Nothing} = nothing,
+                   callbacks::Union{Callback, Tuple{Vararg{Callback}}, Nothing} = nothing,
                    initial_state::Union{State, Nothing} = nothing
                    )::Tuple{Int, Int}
 
@@ -26,18 +27,18 @@ function play_game(game::Game,
     while ~finished(game) & (nsteps < max_nsteps)
         nsteps += 1
 
-        log_state(learning, state(game))
+        log_state(callbacks, state(game))
         action = decide_action(player)
-        log_action(learning, action)
+        log_action(callbacks, action)
 
         reward = update(game, action)
-        log_reward(learning, reward)
+        log_reward(callbacks, reward)
         total_reward += reward
 
-        log_state_outcome(learning, state(game))
+        log_state_outcome(callbacks, state(game))
     end
 
-    log_finished_game(learning)
+    log_finished_game(callbacks)
 
     return nsteps, total_reward
 end

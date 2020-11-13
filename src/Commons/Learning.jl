@@ -1,12 +1,5 @@
 
-abstract type Learning end
-
-# Set default actions whenever there is no learning involved
-log_state(learning::Nothing, state::State) = nothing
-log_action(learning::Nothing, action::Action) = nothing
-log_reward(learning::Nothing, reward::Int) = nothing
-log_state_outcome(learning::Nothing, state::State) = nothing
-log_finished_game(learning::Nothing) = nothing
+abstract type Learning <: Callback end
 
 memory(learning::Learning) = error("memory(learning) to be implemented by concrete type")
 player(learning::Learning) = error("player(learning) to be implemented by concrete type")
