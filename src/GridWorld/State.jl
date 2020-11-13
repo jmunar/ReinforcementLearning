@@ -24,14 +24,6 @@ struct StateGridWorldStatic <: StateGridWorld
             new(nrows, ncols, pos, index)
         end
     end
-
-    function StateGridWorldStatic(nrows::Integer, ncols::Integer, index::Integer)
-        if ~(1 <= index <= nrows * ncols)
-            error("Invalid state definition: index must be 1 ≦ index <= nrows * ncols")
-        end
-        pos_y, pos_x = fldmod(index - 1, ncols) .+ 1
-        new(nrows, ncols, Point(pos_x, pos_y), index)
-    end
 end
 
 function Base.show(io::IO, m::StateGridWorldStatic)
@@ -41,4 +33,11 @@ end
 "Convert state to index"
 function index(state::StateGridWorldStatic)::Int
     return state.index
+end
+
+
+struct StateGridWorldDynamic <: StateGridWorld
+    static::StateGridWorldStatic
+    max_speed::Int
+    speed::Point
 end

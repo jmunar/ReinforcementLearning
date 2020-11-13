@@ -1,5 +1,5 @@
 
-using ReinforcementLearningSutton.Commons: Game
+using ReinforcementLearningSutton.Commons: Game, Point
 import ReinforcementLearningSutton.Commons: state, state_set, nstates, states, actions, finished, restart, update
 
 "Base type for a game in the 2D grid world
@@ -38,7 +38,12 @@ end
 state(game::GameGridWorldStaticBase)::StateGridWorldStatic = game.state[]
 state_set(game::GameGridWorldStaticBase, state::StateGridWorldStatic) = (game.state[] = state)
 nstates(game::GameGridWorldStaticBase)::Int = game.nrows * game.ncols
-states(game::GameGridWorldStaticBase)::Array{StateGridWorldStatic, 1} = map(i -> StateGridWorldStatic(nrows(game), ncols(game), i), 1:nstates(game))
+
+function states(game::GameGridWorldStaticBase)::Array{StateGridWorldStatic, 1}
+    nr, nc = nrows(game), ncols(game)
+    [StateGridWorldStatic(nr, nc, Point(x, y)) for y in 1:nr for x in 1:nc]
+end
+
 actions(game::GameGridWorldStaticBase)::Array{ActionGridWorldStatic, 1} = actions(game, state(game))
 actions(game::GameGridWorldStaticBase, state::StateGridWorldStatic)::Array{ActionGridWorldStatic, 1} = game.allowed_movements_list
 finished(game::GameGridWorldStaticBase)::Bool = (state(game) == game.state_goal)
