@@ -27,9 +27,9 @@ struct GameGridWorldStaticBase <: GameGridWorld
     allowed_movements_list::Array{ActionGridWorldStatic, 1}
 
     function GameGridWorldStaticBase(nrows::Int, ncols::Int, pos_start::Point, pos_goal::Point, allowed_movements::String)
-        state_start = StateGridWorldStatic(nrows, ncols, pos_start)
-        state_goal = StateGridWorldStatic(nrows, ncols, pos_goal)
-        state = StateGridWorldStatic(nrows, ncols, pos_start)
+        state_start = StateGridWorldStatic(pos_start, nrows, ncols)
+        state_goal = StateGridWorldStatic(pos_goal, nrows, ncols)
+        state = StateGridWorldStatic(pos_start, nrows, ncols)
         allowed_movements_list = _ActionGridWorldStaticSets[allowed_movements]
         new(nrows, ncols, Ref(state), state_start, state_goal, allowed_movements, allowed_movements_list)
     end
@@ -41,7 +41,7 @@ nstates(game::GameGridWorldStaticBase)::Int = game.nrows * game.ncols
 
 function states(game::GameGridWorldStaticBase)::Array{StateGridWorldStatic, 1}
     nr, nc = nrows(game), ncols(game)
-    [StateGridWorldStatic(nr, nc, Point(x, y)) for y in 1:nr for x in 1:nc]
+    [StateGridWorldStatic(Point(x, y), nr, nc) for y in 1:nr for x in 1:nc]
 end
 
 actions(game::GameGridWorldStaticBase)::Array{ActionGridWorldStatic, 1} = actions(game, state(game))
@@ -55,7 +55,7 @@ function update(game::GameGridWorldStaticBase, action::ActionGridWorldStatic)::I
     s0 = state(game)
     pos_x = max(1, min(s0.pos.x + action.move.x, ncols(game)))
     pos_y = max(1, min(s0.pos.y + action.move.y, nrows(game)))
-    s = StateGridWorldStatic(nrows(game), ncols(game), Point(pos_x, pos_y))
+    s = StateGridWorldStatic(Point(pos_x, pos_y), nrows(game), ncols(game))
     state_set(game, s)
     -1
 end

@@ -9,35 +9,24 @@ abstract type StateGridWorld <: State end
 
 "Stores the state of a game"
 struct StateGridWorldStatic <: StateGridWorld
+    pos::Point
+    pos0::Point
     nrows::Int
     ncols::Int
-    pos::Point
     index::Int
 
-    function StateGridWorldStatic(nrows::Integer, ncols::Integer, pos::Point)
-        if ~(1 <= pos.y <= nrows)
-            error("Invalid state definition: y must be 1 ≦ y ≦ nrows")
-        elseif ~(1 <= pos.x <= ncols)
-            error("Invalid state definition: x must be 1 ≦ x ≦ ncols")
+    function StateGridWorldStatic(pos::Point, nrows::Int, ncols::Int, pos0::Point = Point(1, 1))
+        if ~(pos0.y <= pos.y <= pos0.y + nrows - 1)
+            error("Invalid state definition: y must be y0 ≦ y ≦ y0 + nrows - 1")
+        elseif ~(pos0.x <= pos.x <= pos0.x + ncols - 1)
+            error("Invalid state definition: x must be x0 ≦ x ≦ x0 + ncols - 1")
         else
-            index = pos.x + ncols * (pos.y - 1)
-            new(nrows, ncols, pos, index)
+            index = (pos.x - pos0.x + 1) + ncols * (pos.y - pos0.y)
+            new(pos, pos0, nrows, ncols, index)
         end
     end
 end
 
-function Base.show(io::IO, m::StateGridWorldStatic)
-  print(io, "State(pos=", m.pos, ")")
-end
-
-"Convert state to index"
-function index(state::StateGridWorldStatic)::Int
-    return state.index
-end
-
-
-struct StateGridWorldDynamic <: StateGridWorld
-    static::StateGridWorldStatic
-    max_speed::Int
-    speed::Point
-end
+index(state::StateGridWorldStatic)::Int = state.index
+pos(state::StateGridWorldStatic)::Point = state.pos
+Base.show(io::IO, m::StateGridWorldStatic) = print(io, "State(pos=", pos(m), ")")
