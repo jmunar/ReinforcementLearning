@@ -1,6 +1,5 @@
 module Commons
 
-include("./Point.jl")
 include("./State.jl")
 include("./Action.jl")
 include("./Callback.jl")

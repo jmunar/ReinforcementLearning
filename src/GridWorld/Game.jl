@@ -1,5 +1,5 @@
 
-using ReinforcementLearningSutton.Commons: Game, Point
+using ReinforcementLearningSutton.Commons: Game
 import ReinforcementLearningSutton.Commons: state, state_set, nstates, states, actions, finished, restart, update
 
 "Base type for a game in the 2D grid world
@@ -26,7 +26,7 @@ struct GameGridWorldStaticBase <: GameGridWorld
     allowed_movements::String
     allowed_movements_list::Array{ActionGridWorldStatic, 1}
 
-    function GameGridWorldStaticBase(nrows::Int, ncols::Int, pos_start::Point, pos_goal::Point, allowed_movements::String)
+    function GameGridWorldStaticBase(nrows::Int, ncols::Int, pos_start::Tuple{Int, Int}, pos_goal::Tuple{Int, Int}, allowed_movements::String)
         state_start = StateGridWorldStatic(pos_start, nrows, ncols)
         state_goal = StateGridWorldStatic(pos_goal, nrows, ncols)
         state = StateGridWorldStatic(pos_start, nrows, ncols)
@@ -41,7 +41,7 @@ nstates(game::GameGridWorldStaticBase)::Int = game.nrows * game.ncols
 
 function states(game::GameGridWorldStaticBase)::Array{StateGridWorldStatic, 1}
     nr, nc = nrows(game), ncols(game)
-    [StateGridWorldStatic(Point(x, y), nr, nc) for y in 1:nr for x in 1:nc]
+    [StateGridWorldStatic((x, y), nr, nc) for y in 1:nr for x in 1:nc]
 end
 
 actions(game::GameGridWorldStaticBase)::Array{ActionGridWorldStatic, 1} = actions(game, state(game))
@@ -53,9 +53,9 @@ ncols(game::GameGridWorldStaticBase)::Int = game.ncols
 
 function update(game::GameGridWorldStaticBase, action::ActionGridWorldStatic)::Int
     s0 = state(game)
-    pos_x = max(1, min(s0.pos.x + action.move.x, ncols(game)))
-    pos_y = max(1, min(s0.pos.y + action.move.y, nrows(game)))
-    s = StateGridWorldStatic(Point(pos_x, pos_y), nrows(game), ncols(game))
+    pos_x = max(1, min(s0.pos[1] + action.move[1], ncols(game)))
+    pos_y = max(1, min(s0.pos[2] + action.move[2], nrows(game)))
+    s = StateGridWorldStatic((pos_x, pos_y), nrows(game), ncols(game))
     state_set(game, s)
     -1
 end
