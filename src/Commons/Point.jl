@@ -18,7 +18,7 @@ end
 
 +(p1::Point, p2::Point) = Point(p1.x + p2.x, p1.y + p2.y)
 -(p1::Point, p2::Point) = Point(p1.x - p2.x, p1.y - p2.y)
--(p1::Point) = Point(-p1.x, -p2.x)
+-(p1::Point) = Point(-p1.x, -p1.y)
 t(point::Point) = Point(point.y, point.x)
 
 +(ps::Array{Point, 1}, p0::Point) = [p1 + p0 for p1 in ps]
