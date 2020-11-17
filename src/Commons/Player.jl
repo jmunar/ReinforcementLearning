@@ -8,9 +8,9 @@ abstract type Player end
 game(player::Player) = error("game(player) to be implemented by concrete type") 
 decide_action(player::Player) = error("decide_action(player) to be implemented by concrete type") 
 
-struct PlayerDeterministic{T} <: Player
-    game::Game
-    policy::Array{T, 1}
+struct PlayerDeterministic{TG <: Game, TA <: TN} <: Player
+    game::TG
+    policy::Vector{TA}
 end
 
 function random_policy(game::Game)::PlayerDeterministic
@@ -22,25 +22,25 @@ function decide_action(player::PlayerDeterministic)::Indexable
     player.policy[index(state(player(game)))]
 end
 
-struct PlayerRandom <: Player
-    game::Game
+struct PlayerRandom{TG <: Game} <: Player
+    game::TG
 end
 
 function decide_action(player::PlayerRandom)::Indexable
     rand(actions(game(player)))
 end
 
-struct PlayerεGreedy <: Player
-    game::Game
+struct PlayerεGreedy{TG <: Game} <: Player
+    game::TG
     ε::Float64
-    Q::Array{Array{Float64, 1}, 1}
+    Q::Vector{Vector{Float64}}
     # Avoid memory allocation using these elements
-    action_probs::Array{Float64, 1}
+    action_probs::Vector{Float64}
 
-    function PlayerεGreedy(game::Game, ε::Float64)
+    function PlayerεGreedy(game::TG, ε::Float64) where {TG <: Game}
         Q = map(s -> zeros(Float64, length(actions(game, s))), states(game))
         action_probs = Array{Float64, 1}(undef, maximum(map(length, Q)))
-        new(game, ε, Q, action_probs)
+        new{TG}(game, ε, Q, action_probs)
     end
 end
 
