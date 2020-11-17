@@ -1,4 +1,6 @@
 
+module GridWorld
+
 using ReinforcementLearningSutton.Commons: Game, Indexable, TN, tuple2index
 import ReinforcementLearningSutton.Commons: state, state_set, states, actions
 
@@ -41,3 +43,5 @@ state(game::GameGridWorld) = state(game.game0)
 state(game::GameGridWorld, value::TN) = state(game.game0, value)
 state_set(game::GameGridWorld, state::Indexable) = state_set(game.game0, state)
 states(game::GameGridWorld) = states(game.game0)
+
+end
