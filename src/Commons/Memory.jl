@@ -40,13 +40,13 @@ step(memory::MemoryLastSteps)::MemoryRecord = memory.steps[n2i(memory)]
 step_random(memory::MemoryLastSteps)::MemoryRecord = rand(memory.steps[1:nstep(memory)])
 restart(memory::MemoryLastSteps) = begin memory.nstep[] = 0 end
 
-function log_state(memory::MemoryLastSteps, state::State)
+function log_state(memory::MemoryLastSteps, state::Indexable)
     memory.nstep[] += 1
     memory.step_temp.s = index(state)
     nothing
 end
 
-function log_action(memory::MemoryLastSteps, action::Action)
+function log_action(memory::MemoryLastSteps, action::Indexable)
     memory.step_temp.a = index(action)
     nothing
 end
@@ -56,7 +56,7 @@ function log_reward(memory::MemoryLastSteps, reward)
     nothing
 end
 
-function log_state_outcome(memory::MemoryLastSteps, state::State)
+function log_state_outcome(memory::MemoryLastSteps, state::Indexable)
     memory.step_temp.sp = index(state)
     memory.steps[n2i(memory)] = MemoryRecord(memory.step_temp)
     nothing
@@ -84,11 +84,11 @@ step(memory::MemoryDeterministic)::MemoryRecord = step(memory.steps)
 restart(memory::MemoryDeterministic) = restart(memory.steps)
 
 
-log_state(memory::MemoryDeterministic, state::State) = log_state(memory.steps, state)
-log_action(memory::MemoryDeterministic, action::Action) = log_action(memory.steps, action)
+log_state(memory::MemoryDeterministic, state::Indexable) = log_state(memory.steps, state)
+log_action(memory::MemoryDeterministic, action::Indexable) = log_action(memory.steps, action)
 log_reward(memory::MemoryDeterministic, reward) = log_reward(memory.steps, reward)
 
-function log_state_outcome(memory::MemoryDeterministic, state::State)
+function log_state_outcome(memory::MemoryDeterministic, state::Indexable)
     log_state_outcome(memory.steps, state)
     last_step = step(memory)
     s = last_step.s

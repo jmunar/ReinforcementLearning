@@ -5,11 +5,11 @@ memory(learning::Learning) = error("memory(learning) to be implemented by concre
 player(learning::Learning) = error("player(learning) to be implemented by concrete type")
 update_policy(learning::Learning, final::Bool) = error("update_policy(learning, final) to be implemented by concrete type")
 
-log_state(learning::Learning, state::State) = log_state(memory(learning), state)
-log_action(learning::Learning, action::Action) = log_action(memory(learning), action)
+log_state(learning::Learning, state::Indexable) = log_state(memory(learning), state)
+log_action(learning::Learning, action::Indexable) = log_action(memory(learning), action)
 log_reward(learning::Learning, reward::Int) = log_reward(memory(learning), reward)
 
-function log_state_outcome(learning::Learning, state::State)
+function log_state_outcome(learning::Learning, state::Indexable)
     log_state_outcome(memory(learning), state)
     update_policy(learning, false)
     nothing

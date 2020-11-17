@@ -18,7 +18,7 @@ function random_policy(game::Game)::PlayerDeterministic
     PlayerDeterministic(game, policy)
 end
 
-function decide_action(player::PlayerDeterministic)::Action
+function decide_action(player::PlayerDeterministic)::Indexable
     player.policy[index(state(player(game)))]
 end
 
@@ -26,7 +26,7 @@ struct PlayerRandom <: Player
     game::Game
 end
 
-function decide_action(player::PlayerRandom)::Action
+function decide_action(player::PlayerRandom)::Indexable
     rand(actions(game(player)))
 end
 
@@ -70,7 +70,7 @@ function action_probabilities(player::PlayerεGreedy, state_index::Int)
     @view player.action_probs[1:nactions]
 end
 
-function decide_action(player::PlayerεGreedy)::Action
+function decide_action(player::PlayerεGreedy)::Indexable
     ps = action_probabilities(player, index(state(game(player))))
     p_sample = rand()
 

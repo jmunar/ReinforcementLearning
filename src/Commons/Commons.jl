@@ -1,7 +1,6 @@
 module Commons
 
-include("./State.jl")
-include("./Action.jl")
+include("./Indexable.jl")
 include("./Callback.jl")
 include("./Game.jl")
 include("./Player.jl")
@@ -12,7 +11,7 @@ function play_game(game::Game,
                    player::Player,
                    max_nsteps::Int = 10000000,
                    callbacks::Union{Callback, Tuple{Vararg{Callback}}, Nothing} = nothing,
-                   initial_state::Union{State, Nothing} = nothing
+                   initial_state::Union{Indexable, Nothing} = nothing
                    )::Tuple{Int, Int}
 
     restart(game)
