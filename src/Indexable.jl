@@ -1,7 +1,7 @@
 
 const TN = Tuple{Vararg{Int}}
 
-function tuple2index(dims::T, pos::T, pos0::T)::Int where {T <: TN}
+function value2index(dims::T, pos::T, pos0::T)::Int where {T <: TN}
     index = pos[1] - pos0[1]
     for i in 2:length(dims)
         index *= dims[i]
@@ -10,7 +10,7 @@ function tuple2index(dims::T, pos::T, pos0::T)::Int where {T <: TN}
     index + 1
 end
 
-function tuple2index(dims::T, pos::T)::Int where {T <: TN}
+function value2index(dims::T, pos::T)::Int where {T <: TN}
     index = pos[1] - 1
     for i in 2:length(dims)
         index *= dims[i]
@@ -25,6 +25,10 @@ struct Indexable{T <: TN}
 end
 
 index(x::Indexable) = x.index
+
+# Get Indexable object from track dimensions and current position
+Indexable(dims::T, pos::T, pos0::T) where {T <: TN} = Indexable{T}(pos, value2index(dims, pos, pos0))
+Indexable(dims::T, pos::T) where {T <: TN} =  Indexable{T}(pos, value2index(dims, pos))
 
 const T2 = Tuple{Int, Int}
 const I2 = Indexable{T2}

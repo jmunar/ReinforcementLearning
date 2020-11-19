@@ -9,7 +9,7 @@ struct GameGridWorldBase{TS <: TN, TA <: TN} <: Game
     actions::Vector{Indexable{TA}}
 
     function GameGridWorldBase(dims::TS, allowed_movements::Vector{TA}) where {TS <: TN, TA <: TN}
-        states = [Indexable{TS}((x, y), tuple2index(dims, (x, y))) for y in 1:dims[2] for x in 1:dims[1]]
+        states = [Indexable(dims, (x, y)) for y in 1:dims[2] for x in 1:dims[1]]
         actions = map(((i, m), ) -> Indexable{TA}(m, i), enumerate(allowed_movements))
         state = states[1]  # Arbitrary
         new{TS, TA}(dims, Ref(state), states, actions)
@@ -18,7 +18,7 @@ end
 
 dims(game::GameGridWorldBase) = game.dims
 state(game::GameGridWorldBase) = game.state[]
-state(game::GameGridWorldBase{TS, TA}, value::TS) where {TS <: TN, TA <: TN} = Indexable{TS}(value, tuple2index(dims(game), value))
+state(game::GameGridWorldBase{TS, TA}, value::TS) where {TS <: TN, TA <: TN} = Indexable(dims(game), value)
 state_set(game::GameGridWorldBase, state::Indexable) = begin game.state[] = state; nothing end
 states(game::GameGridWorldBase) = game.states
 
