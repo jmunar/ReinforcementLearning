@@ -28,3 +28,7 @@ index(x::Indexable) = x.index
 
 const T2 = Tuple{Int, Int}
 const I2 = Indexable{T2}
+const T3 = Tuple{Int, Int, Int}
+const I3 = Indexable{T3}
+const T4 = Tuple{Int, Int, Int, Int}
+const I4 = Indexable{T4}

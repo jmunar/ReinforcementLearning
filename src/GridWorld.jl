@@ -1,9 +1,6 @@
 
 module GridWorld
 
-using ReinforcementLearningSutton.Commons: Game, Indexable, TN, tuple2index
-import ReinforcementLearningSutton.Commons: state, state_set, states, actions
-
 "Base type for a game in the grid world. To be functional, a ruleset
 must be added (see below)"
 struct GameGridWorldBase{TS <: TN, TA <: TN} <: Game
