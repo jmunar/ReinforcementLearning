@@ -1,6 +1,4 @@
 
-module GridWorld
-
 "Base type for a game in the grid world. To be functional, a ruleset
 must be added (see below)"
 struct GameGridWorldBase{TS <: TN, TA <: TN} <: Game
@@ -40,5 +38,3 @@ state(game::GameGridWorld) = state(game.game0)
 state(game::GameGridWorld, value::TN) = state(game.game0, value)
 state_set(game::GameGridWorld, state::Indexable) = state_set(game.game0, state)
 states(game::GameGridWorld) = states(game.game0)
-
-end
