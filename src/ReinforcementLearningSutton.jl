@@ -1,4 +1,6 @@
 
+module ReinforcementLearningSutton
+
 include("./Indexable.jl")
 include("./Callback.jl")
 include("./Game.jl")
@@ -41,4 +43,6 @@ function play_game(game::Game,
     log_finished_game(callbacks)
 
     return nsteps, total_reward
+end
+
 end
