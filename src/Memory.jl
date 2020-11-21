@@ -1,7 +1,7 @@
 
 import Base.zero
 
-abstract type Memory end
+abstract type Memory <: Callback end
 
 mutable struct MemoryRecordTemp{RewardType <: Number}
     s::Int
@@ -51,7 +51,7 @@ function log_action(memory::MemoryLastSteps, action::Indexable)
     nothing
 end
 
-function log_reward(memory::MemoryLastSteps, reward)
+function log_reward(memory::MemoryLastSteps{T}, reward::T) where {T <: Number}
     memory.step_temp.r = reward
     nothing
 end
