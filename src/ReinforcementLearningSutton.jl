@@ -26,7 +26,7 @@ function play_game(game::Game,
 
     nsteps = 0
     total_reward = 0
-    while ~finished(game) & (nsteps < max_nsteps)
+    while ~finished(game) && (nsteps < max_nsteps)
         nsteps += 1
 
         log_state(callbacks, state(game))

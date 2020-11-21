@@ -16,9 +16,15 @@ struct Indexable{T <: TN}
 end
 
 index(x::Indexable) = x.index
+value(x::Indexable) = x.value
 
 # Get Indexable object from track dimensions and current position
 Indexable(dims::T, pos::T, pos0::Union{Nothing, T} = nothing) where {T <: TN} = Indexable{T}(pos, value2index(dims, pos, pos0))
+
+function IndexableVector(dims::T, pos0::Union{Nothing, T} = nothing) where {T <: TN}
+    map(idx -> Indexable(dims, reverse(Tuple(idx)) .- (pos0 === nothing ? 0 : 1 .- pos0), pos0),
+        vec(CartesianIndices(reverse(dims))))
+end
 
 const T2 = Tuple{Int, Int}
 const I2 = Indexable{T2}
