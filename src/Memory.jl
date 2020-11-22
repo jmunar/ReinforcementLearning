@@ -64,12 +64,12 @@ end
 
 
 "Memory of last steps with random selection for reviving experiences"
-mutable struct MemoryDeterministic{RewardType} <: Memory
+struct MemoryDeterministic{RewardType <: Number} <: Memory
     steps::MemoryLastSteps{RewardType}
     steps_unique::MemoryLastSteps{RewardType}
     state_action_visited::Vector{Vector{Bool}}
 
-    function MemoryDeterministic{RewardType}(nactions_per_state::Array{Int, 1}, capacity::Int = 1000) where {RewardType <: Number}
+    function MemoryDeterministic{RewardType}(nactions_per_state::Vector{Int}, capacity::Int = 1000) where {RewardType <: Number}
         steps = MemoryLastSteps{RewardType}(capacity)
         steps_unique = MemoryLastSteps{RewardType}(sum(nactions_per_state))
         state_action_visited = map(n -> zeros(Bool, n), nactions_per_state)
@@ -86,7 +86,7 @@ restart(memory::MemoryDeterministic) = restart(memory.steps)
 
 log_state(memory::MemoryDeterministic, state::Indexable) = log_state(memory.steps, state)
 log_action(memory::MemoryDeterministic, action::Indexable) = log_action(memory.steps, action)
-log_reward(memory::MemoryDeterministic, reward) = log_reward(memory.steps, reward)
+log_reward(memory::MemoryDeterministic, reward::Number) = log_reward(memory.steps, reward)
 
 function log_state_outcome(memory::MemoryDeterministic, state::Indexable)
     log_state_outcome(memory.steps, state)
@@ -95,8 +95,8 @@ function log_state_outcome(memory::MemoryDeterministic, state::Indexable)
     a = last_step.a
     if ~memory.state_action_visited[s][a]
         memory.state_action_visited[s][a] = true
-        memory.steps_unique.nstep += 1
-        memory.steps_unique.steps[memory.steps_unique.nstep] = last_step
+        memory.steps_unique.nstep[] += 1
+        memory.steps_unique.steps[nstep(memory.steps_unique)] = last_step
     end
     nothing
 end
