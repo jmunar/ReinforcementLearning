@@ -139,12 +139,14 @@ end
 
 struct LearningDynaQ{PlayerType <: Player} <: Learning
     player::PlayerType
-    memory::MemoryLastSteps{Int}
+    memory::MemoryDeterministic{Int}
     n::Int
     α::Float64
     γ::Float64
 
-    LearningDynaQ(player::T, n::Int, α::Float64, γ::Float64) where {T <: Player} = new{T}(player, MemoryDeterministic{Int}(map(length, player.Q)), n, α, γ)
+    function LearningDynaQ(player::T, n::Int, α::Float64, γ::Float64) where {T <: Player}
+        new{T}(player, MemoryDeterministic{Int}(map(length, player.Q)), n, α, γ)
+    end
 end
 
 function update_policy(learning::LearningDynaQ, final::Bool)
