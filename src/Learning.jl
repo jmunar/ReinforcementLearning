@@ -20,6 +20,52 @@ function log_finished_game(learning::Learning)
     nothing
 end
 
+struct LearningMonteCarloOffPolicy{PlayerType <: Player} <: Learning
+    player_on_policy::PlayerType
+    player_off_policy::PlayerεGreedy
+    memory::MemoryLastSteps{Int}
+    Γ::Float64
+    
+    C::Vector{Vector{Float64}}
+
+    function LearningMonteCarloOffPolicy(player_on_policy::TP, max_nsteps::Int, Γ::Float64, Q0::Float64) where {TP <: Player}
+        g = game(player_on_policy)
+        player_off_policy = PlayerεGreedy(g, 0., Q0)
+        memory = MemoryLastSteps{Int}(max_nsteps)
+        C = map(s -> zeros(Float64, length(actions(g, s))), states(g))
+        new{TP}(player_on_policy, player_off_policy, memory, Γ, C)
+    end
+end
+
+function update_policy(learning::LearningMonteCarloOffPolicy, final::Bool)
+    
+    if ~final
+        return
+    end
+    
+    player_on = learning.player_on_policy
+    player_off = learning.player_off_policy
+    mem = memory(learning)
+        
+    g = 0.
+    w = 1.
+        
+    for n in 0:nstep(mem)-1
+        record = step(mem, n)
+
+        g = learning.Γ * g + record.r
+        learning.C[record.s][record.a] += w
+        player_off.Q[record.s][record.a] += (w / learning.C[record.s][record.a]) * (g - player_off.Q[record.s][record.a])
+
+        # Check if the greedy action is the same as the one taken by the policy; otherwise stop the learning
+        if index(decide_action(player_off, record.s)) != record.a
+            break
+        end
+
+        w *= action_probability(player_on, record.s, record.a)
+    end
+end
+
 struct LearningSarsa{PlayerType <: Player} <: Learning
     player::PlayerType
     memory::MemoryLastSteps{Int}
@@ -122,4 +168,4 @@ function update_policy(learning::LearningDynaQ, final::Bool)
 end
 
 player(learning::Union{LearningSarsa, LearningQ, LearningSarsaExpected, LearningDynaQ}) = learning.player
-memory(learning::Union{LearningSarsa, LearningQ, LearningSarsaExpected, LearningDynaQ}) = learning.memory
+memory(learning::Union{LearningMonteCarloOffPolicy, LearningSarsa, LearningQ, LearningSarsaExpected, LearningDynaQ}) = learning.memory
