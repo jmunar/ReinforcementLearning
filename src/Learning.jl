@@ -2,7 +2,6 @@
 abstract type Learning <: Callback end
 
 memory(learning::Learning) = error("memory(learning) to be implemented by concrete type")
-player(learning::Learning) = error("player(learning) to be implemented by concrete type")
 update_policy(learning::Learning, final::Bool) = error("update_policy(learning, final) to be implemented by concrete type")
 
 log_state(learning::Learning, state::Indexable) = log_state(memory(learning), state)
