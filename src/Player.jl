@@ -18,16 +18,30 @@ function random_policy(game::Game)::PlayerDeterministic
     PlayerDeterministic(game, policy)
 end
 
-function decide_action(player::PlayerDeterministic)::Indexable
-    player.policy[index(state(player(game)))]
+function decide_action(player::PlayerDeterministic, state_index::Union{Int, Nothing} = nothing)::Indexable
+    if state_index === nothing
+        state_index = index(state(game(player)))
+    end
+    player.policy[state_index]
 end
 
 struct PlayerRandom{TG <: Game} <: Player
     game::TG
+    nactions::Vector{Int}
+
+    function PlayerRandom(game::TG) where {TG <: Game}
+        nactions = map(s -> length(actions(game, s)), states(game))
+        new{TG}(game, nactions)
+    end
 end
 
-function decide_action(player::PlayerRandom)::Indexable
-    rand(actions(game(player)))
+function action_probability(player::PlayerRandom, state_index::Int, action_index::Int)
+    1 / player.nactions[state_index]
+end
+
+function decide_action(player::PlayerRandom, state_index::Union{Int, Nothing} = nothing)::Indexable
+    options = actions(game(player), state_index)
+    options[Int(ceil(length(options) * rand()))]
 end
 
 struct PlayerεGreedy{TG <: Game} <: Player
@@ -37,8 +51,8 @@ struct PlayerεGreedy{TG <: Game} <: Player
     # Avoid memory allocation using these elements
     action_probs::Vector{Float64}
 
-    function PlayerεGreedy(game::TG, ε::Float64) where {TG <: Game}
-        Q = map(s -> zeros(Float64, length(actions(game, s))), states(game))
+    function PlayerεGreedy(game::TG, ε::Float64, Q0::Float64 = 0.) where {TG <: Game}
+        Q = map(s -> fill(Q0, length(actions(game, s))), states(game))
         action_probs = Array{Float64, 1}(undef, maximum(map(length, Q)))
         new{TG}(game, ε, Q, action_probs)
     end
@@ -70,15 +84,25 @@ function action_probabilities(player::PlayerεGreedy, state_index::Int)
     @view player.action_probs[1:nactions]
 end
 
-function decide_action(player::PlayerεGreedy)::Indexable
-    ps = action_probabilities(player, index(state(game(player))))
-    p_sample = rand()
+function action_probability(player::PlayerεGreedy, state_index::Int, action_index::Int)
+    action_probabilities(player, state_index)[action_index]
+end
+
+function decide_action(player::PlayerεGreedy, state_index::Union{Int, Nothing} = nothing)::Indexable
+
+    if state_index === nothing
+        state_index = index(state(game(player)))
+    end
+
+    ps = action_probabilities(player, state_index)
+
+    rnd = rand()
 
     pcum = 0
     for (idx, p) in enumerate(ps)
         pcum += p
-        if p_sample < pcum
-            return actions(game(player))[idx]
+        if rnd < pcum
+            return actions(game(player), state_index)[idx]
         end
     end
 

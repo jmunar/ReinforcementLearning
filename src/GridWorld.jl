@@ -19,6 +19,7 @@ end
 dims(game::GameGridWorldBase) = game.dims
 state(game::GameGridWorldBase) = game.state[]
 state(game::GameGridWorldBase{TS, TA}, value::TS) where {TS <: TN, TA <: TN} = Indexable(dims(game), value, game.states[1].value)
+state(game::GameGridWorldBase{TS, TA}, index::Int) where {TS <: TN, TA <: TN} = game.states[index]
 state_set(game::GameGridWorldBase, state::Indexable) = begin game.state[] = state; nothing end
 states(game::GameGridWorldBase) = game.states
 
@@ -36,5 +37,6 @@ end
 dims(game::GameGridWorld) = dims(game.game0)
 state(game::GameGridWorld) = state(game.game0)
 state(game::GameGridWorld, value::TN) = state(game.game0, value)
+state(game::GameGridWorld, index::Int) = state(game.game0, index)
 state_set(game::GameGridWorld, state::Indexable) = state_set(game.game0, state)
 states(game::GameGridWorld) = states(game.game0)
