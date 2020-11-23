@@ -169,5 +169,40 @@ function update_policy(learning::LearningDynaQ, final::Bool)
 
 end
 
-player(learning::Union{LearningSarsa, LearningQ, LearningSarsaExpected, LearningDynaQ}) = learning.player
-memory(learning::Union{LearningMonteCarloOffPolicy, LearningSarsa, LearningQ, LearningSarsaExpected, LearningDynaQ}) = learning.memory
+struct LearningSGDStateAgg{PlayerType<:Player} <: Learning
+    player::PlayerType
+    memory::MemoryLastSteps{Int}
+    α::Float64
+    γ::Float64
+    
+    agg_w::Vector{Float64}
+    agg_index::Vector{Int}
+    
+    hist::Vector{Float64}
+    
+    function LearningSGDStateAgg(player::PlayerType, agg_index::Vector{Int}, α::Float64, γ::Float64) where {PlayerType <: Player}
+        agg_w = zeros(Float64, maximum(agg_index))
+        hist = zeros(Int, length(agg_index))
+        new{PlayerType}(player, MemoryLastSteps{Int}(2), α, γ, agg_w, agg_index, hist)
+    end
+end
+
+v_idx(learning::LearningSGDStateAgg, state_index::Int)::Int = learning.agg_index[state_index]
+v(learning::LearningSGDStateAgg, state_index::Int)::Float64 = learning.agg_w[v_idx(learning, state_index)]
+
+function update_policy(learning::LearningSGDStateAgg, final::Bool)
+    mem = memory(learning)
+    n = final ? 0 : 1
+    if nstep(mem) > n
+        last_step = step(mem, n)
+        s = last_step.s
+        r = last_step.r
+        sp = last_step.sp
+
+        v_update = final ? 0 : v(learning, sp)
+        learning.agg_w[v_idx(learning, s)] += learning.α * (r + learning.γ * v_update - v(learning, s))
+    end
+end
+
+player(learning::Union{LearningSarsa, LearningQ, LearningSarsaExpected, LearningDynaQ, LearningSGDStateAgg}) = learning.player
+memory(learning::Union{LearningMonteCarloOffPolicy, LearningSarsa, LearningQ, LearningSarsaExpected, LearningDynaQ, LearningSGDStateAgg}) = learning.memory

@@ -26,6 +26,8 @@ function IndexableVector(dims::T, pos0::Union{Nothing, T} = nothing) where {T <:
         vec(CartesianIndices(reverse(dims))))
 end
 
+const T1 = Tuple{Int}
+const I1 = Indexable{T1}
 const T2 = Tuple{Int, Int}
 const I2 = Indexable{T2}
 const T3 = Tuple{Int, Int, Int}
